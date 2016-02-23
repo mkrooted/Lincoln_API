@@ -1,0 +1,11 @@
+{
+  "name": "Lincoln_API",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "latest",
+    "mysql": "^2.10.2",
+    "regex": "latest",
+    "validator": "^4.9.0",
+    "underscore": "latest"
+  }
+}
