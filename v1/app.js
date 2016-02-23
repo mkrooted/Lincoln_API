@@ -52,7 +52,6 @@ app.get("/users", function (req, res) {
 });
 app.get("/users/:id", function (req, res) {
     res.type('text/plain');
-
     pool.getConnection(function (error) {
         if (error) {
             console.error("Error connecing to database: " + error.stack);
@@ -62,13 +61,14 @@ app.get("/users/:id", function (req, res) {
         }
         console.log("Connection to dev@localhost successful! Connection ID: " + pool.threadId);
     });
-    if (validator.isNumeric(req.id)) {
-        pool.query("SELECT * FROM users WHERE user_id=" + req.id, function (err, rows, fields) {
-            if (util.isUndefined(rows)) {
+    if (validator.isNumeric(req.params.id)) {
+        pool.query("SELECT * FROM users WHERE user_id=" + req.params.id, function (err, rows, fields) {
+            if (util.isNullOrUndefined(rows[0])) {
                 res.statusCode = 404;
-                res.send("{error: 404, desc:'User with id " + req.id + " not found'}");
-                return
+                res.send("{error: 404, desc:'User with id " + req.params.id + " not found'}");
+                return;
             }
+            var i = rows[0];
             var r = "{id: '" + i.user_id + "', login: '" + i.user_login + "', password: '" +
                 i.user_password + "', hash: '" + i.user_hash + "', last_ip: '" + i.user_last_ip +
                 "', email: '" + i.user_email + "', date_registered: '" + i.user_date_registered + "', last_login: '" +
@@ -76,12 +76,13 @@ app.get("/users/:id", function (req, res) {
             res.send(r);
         });
     } else {
-        pool.query("SELECT * FROM users WHERE user_login=" + req.id, function (err, rows, fields) {
-            if (util.isUndefined(rows)) {
+        pool.query("SELECT * FROM users WHERE user_login='" + req.params.id + "'", function (err, rows, fields) {
+            if (util.isUndefined(rows[0])) {
                 res.statusCode = 404;
-                res.send("{error: 404, desc:'User with login " + req.id + " not found'}");
-                return
+                res.send("{error: 404, desc:'User with login " + req.params.id + " not found'}");
+                return;
             }
+            var i = rows[0];
             var r = "{id: '" + i.user_id + "', login: '" + i.user_login + "', password: '" +
                 i.user_password + "', hash: '" + i.user_hash + "', last_ip: '" + i.user_last_ip +
                 "', email: '" + i.user_email + "', date_registered: '" + i.user_date_registered + "', last_login: '" +
