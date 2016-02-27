@@ -1,11 +1,18 @@
 {
   "name": "Lincoln_API",
   "version": "0.0.1",
+  "description": "Lincoln project API. Created by mkrooted, abraham_lincoln and benjamin_franclin",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/mkrooted/lincoln_api.git"
+  },
   "dependencies": {
+    "body-parser": "latest",
     "express": "latest",
     "mysql": "^2.10.2",
+    "node-regexp": "^0.1.1",
     "regex": "latest",
-    "validator": "^4.9.0",
-    "underscore": "latest"
+    "underscore": "latest",
+    "validator": "^4.9.0"
   }
 }
