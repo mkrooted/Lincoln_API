@@ -6,7 +6,6 @@ var validator = require("validator");
 var crypto = require("crypto");
 var bodyParser = require('body-parser');
 var regexp = require("node-regexp");
-
 var app = express();
 app.locals.title = "Lincoln_API";
 app.locals.email = "koreshov.m@gmail.com";
@@ -51,6 +50,11 @@ app.get("/users", function (req, res) {
         console.log("Connection to dev@localhost successful! Connection ID: " + conn.threadId);
     });//connect to the database and throw ACHTUNG 500 INTERNAL SERVER ERROR if error
     conn.query("SELECT * FROM users", function (err, rows, fields) {
+        if (err) {
+            res.statusCode = 500;
+            res.send("{error: 500, desc: 'Error executing query: " + error.stack + "'}");
+            return;
+        }
         res.statusCode = 200;
         res.type("application/json");
         var r = "[";
@@ -221,31 +225,71 @@ app.delete("/users/:login", function (req, res) {
     res.sendStatus(200);
 });
 
+// SALES SECTION
 app.get("/sales", function (req, res) {
-    res.type('text/plain');
-    pool.getConnection(function (error) {
-        if (error) {
-            console.error("Error connecing to database: " + error.stack);
+    var conn = getConnection(function (err) {
+        if (err) {
+            console.error("Error connecing to database: " + err.stack);
             res.statusCode = 500;
-            return
+            res.send("{error: 500, desc: 'Error connecting to DB: " + err.stack + "'}");
+            return;
         }
         console.log("Connection to dev@localhost successful! Connection ID: " + conn.threadId);
     });
 
-    pool.query("SELECT * FROM sales", function (err, rows, fields) {
+    conn.query("SELECT * FROM sales", function (err, rows, fields) {
+        if (err) {
+            res.statusCode = 500;
+            res.send("{error: 500, desc: 'Error executing query: " + error.stack + "'}");
+            return;
+        }
         res.statusCode = 200;
-        var r = "[\n";
+        res.type("application/json");
+        var r = "[";
         rows.forEach(function (i) {
-            r += "{id: '" + i.sale_id + "', owned: '" + i.sale_owned + "', paid: '" +
-                i.sale_paid + "', price: '" + i.sale_price + "', currency: '" + i.sale_currency +
-                "', item: '" + i.sale_item + "', children: " + i.sale_children + ", date_created: '" +
-                i.sale_date_created + "', date_paid: '" + i.sale_date_paid + "}\n";
-
+            r += "{\"id\": \"" + i.sale_id + "\", \"owned\": \"" + i.sale_owned + "\", " +
+                "\"paid\": " + i.sale_paid + ", \"price\": " + i.sale_price + ", \"currency\": \"" + i.sale_currency +
+                "\", \"item\": " + i.sale_item + ", \"date_created\": \"" + i.sale_date_created + "\", " +
+                "\"date_paid\": \"" + i.sale_date_paid + "\", \"children\": " + i.sale_children + "},";
         });
-        r += "]";
-        res.send(r);
+        res.send(r.substring(0, r.length - 1) + "]");
+        conn.end()
     });
 });
-
+app.post("/sales", function (req, res) {
+    var data = req.body;
+    var conn = getConnection(function (error) {
+        if (error) {
+            console.error("Error connecing to database: " + error.stack);
+            res.statusCode = 500;
+            res.send("{error: 500, desc: 'Error connecting to DB: " + error.stack + "'}");
+            return;
+        }
+        console.log("Connection to dev@localhost successful! Connection ID: " + conn.threadId);
+    });//connect to the database and throw ACHTUNG 500 INTERNAL SERVER ERROR if error
+    if (util.isNullOrUndefined(data.owned) || util.isNullOrUndefined(data.paid) || util.isNullOrUndefined(data.price)
+        || util.isNullOrUndefined(data.currency) || util.isNullOrUndefined(data.item)) {
+        res.statusCode = 400;
+        res.send("{error: 400, desc:'Incomplete request. Cannot create sale'}");
+        conn.end();
+        return;
+    } else {
+        conn.query("INSERT INTO sales(`sale_id`,`user_email`,`user_password`,`user_wmid`,`user_last_ip`) " +
+            "VALUES('" + data.login + "','" + data.email + "','" + data.password + "','" + data.wmid + "','" + req.ip + "');", function (err) {
+            if (err) {
+                console.error("Error creating user from ip " + req.ip + "; Desc: " + err.stack);
+                res.statusCode = 500;
+                res.json({
+                    "error": 500,
+                    "desc": "Something gone wrong while creating user record",
+                    "stack": err.stack
+                });
+                conn.end();
+                return;
+            } else res.sendStatus(200);
+            conn.end();
+        });
+    }
+});
 
 app.listen(2016);
