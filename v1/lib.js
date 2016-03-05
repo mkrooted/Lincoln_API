@@ -3,9 +3,9 @@ var crypto = require("crypto");
 
 function getConnection(callback) //returns connection to DB. callback - function to execute if error
 {
-    var conn;
+    var c;
     try {
-        conn = mysql.createConnection({ // pool for mysql connections
+        c = mysql.createConnection({ // pool for mysql connections
             host: "localhost",
             port: "3306",
             user: "dev",
@@ -16,8 +16,10 @@ function getConnection(callback) //returns connection to DB. callback - function
         });
     } catch (err) {
         callback(err);
+        return;
     }
-    return conn;
+
+    callback(undefined, c);
 }
 function getNewHash() //generates random 20 bytes and returns their HEX representation
 {
