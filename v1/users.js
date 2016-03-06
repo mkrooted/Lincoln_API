@@ -181,8 +181,8 @@ function del(req, res) {
     });
 }
 
-module.exports.getAll = getAll();
-module.exports.getByLogin = getByLogin();
-module.exports.new = newUser();
-module.exports.modify = modify();
-module.exports.delete = del();
+module.exports.getAll = getAll;
+module.exports.getByLogin = getByLogin;
+module.exports.new = newUser;
+module.exports.modify = modify;
+module.exports.delete = del;

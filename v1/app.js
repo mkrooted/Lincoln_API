@@ -11,6 +11,7 @@ app.use(bodyParser.json()); // for parsing application/json
 var lib = require("./lib.js");
 var users = require("./users.js");
 var coupons = require("./coupons.js");
+var items = require("./items.js");
 
 // USERS SECTION
 app.get("/users", users.getAll); //get all records from table 'users'
@@ -27,4 +28,10 @@ app.delete("/coupons/:id", coupons.delete);
 app.get("/coupons/:id/paid", coupons.setPaid);
 app.all("/coupons/:id/createChildren", coupons.createChildren);
 
-app.listen(2016);
+// ITEMS SECTION
+app.get("/items", items.getAll);
+app.get("/items/:id", items.getById);
+
+var port = 2016;
+app.listen(port);
+console.log("Listening on port " + String(port));

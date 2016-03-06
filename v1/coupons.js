@@ -154,6 +154,7 @@ function getAll(req, res) {
             console.error("Error connecing to database: " + err.stack);
             res.statusCode = 500;
             res.json({"error": 500, "desc": err.stack});
+            conn.end();
             return;
         }
         console.log("Connection to dev@localhost successful! Connection ID: " + conn.threadId);
@@ -303,11 +304,11 @@ function del(req, res) {
     });
 }
 
-module.exports.getAll = getAll();
-module.exports.getById = getById();
-module.exports.new = newCoupon();
-module.exports.delete = del();
-module.exports.createChildren = createChildren();
-module.exports.setPaid = setPaid();
-module.exports.setOwner = setOwner();
-module.exports.modify = modify();
+module.exports.getAll = getAll;
+module.exports.getById = getById;
+module.exports.new = newCoupon;
+module.exports.delete = del;
+module.exports.createChildren = createChildren;
+module.exports.setPaid = setPaid;
+module.exports.setOwner = setOwner;
+module.exports.modify = modify;
