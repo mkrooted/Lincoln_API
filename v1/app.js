@@ -12,6 +12,7 @@ var lib = require("./lib.js");
 var users = require("./users.js");
 var coupons = require("./coupons.js");
 var items = require("./items.js");
+var admin = require("./admin.js");
 
 // USERS SECTION
 app.get("/users", users.getAll); //get all records from table 'users'
@@ -31,6 +32,9 @@ app.all("/coupons/:id/createChildren", coupons.createChildren);
 // ITEMS SECTION
 app.get("/items", items.getAll);
 app.get("/items/:id", items.getById);
+
+// ADMIN PANEL
+app.get("/admin/getPriceTable", admin.getPriceTable);
 
 var port = 2016;
 app.listen(port);

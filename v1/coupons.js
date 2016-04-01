@@ -1,7 +1,7 @@
 var lib = require("./lib.js");
 var util = require("util");
 
-var CHILDRENAMOUNT = 3;
+var CHILDRENAMOUNT = 4;
 
 function modify(req, res) {
     var data = req.body;
@@ -91,9 +91,9 @@ function setPaid(req, res) {
             res.json({"error": 500, "desc": error.stack});
             return;
         }
-        conn.query("UPDATE `coupons` SET coupon_paid=1, coupon_date_paid=" +
+        conn.query("UPDATE `coupons` SET coupon_paid=1, coupon_date_paid=\'" +
             new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') +
-            " WHERE coupon_id='" + req.params.id + "'", function (err, rows, fields) {
+            "\' WHERE coupon_id='" + req.params.id + "'", function (err, rows, fields) {
             conn.end();
             if (err) {
                 res.statusCode = 500;
@@ -114,7 +114,7 @@ function createChildren(req, res) {
         conn.query("SELECT `coupon_price`,`coupon_item` FROM coupons WHERE coupon_id='" + req.params.id + "'", function (err, rows, fields) {
             var item = rows[0].coupon_item;
             var price = rows[0].coupon_price;
-            var generatedId;
+            var generatedId = [];
             var resultJson = "[";
             var isError = false;
             for (var i = 0; i < CHILDRENAMOUNT; i++) {

@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "body-parser": "latest",
+    "csgo-market": "^1.5.2",
     "express": "latest",
     "mysql": "^2.10.2",
     "node-regexp": "^0.1.1",
