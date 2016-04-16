@@ -14,6 +14,7 @@
     "node-regexp": "^0.1.1",
     "regex": "latest",
     "underscore": "latest",
-    "validator": "^4.9.0"
+    "validator": "^4.9.0",
+    "request": "latest"
   }
 }

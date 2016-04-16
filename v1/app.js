@@ -35,6 +35,14 @@ app.get("/items/:id", items.getById);
 
 // ADMIN PANEL
 app.get("/admin/getPriceTable", admin.getPriceTable);
+app.get("/admin/updatePrices", function (req, res) {
+    admin.getNewPrices();
+    res.sendStatus(200);
+});
+
+//ROUTINES
+//var UPDATE_INTERVAL = 60 * 1000; //in milliseconds
+//setInterval(function(){admin.getNewPrices(); console.log("Routine: updating prices")}, UPDATE_INTERVAL);
 
 var port = 2016;
 app.listen(port);

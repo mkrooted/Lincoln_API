@@ -72,25 +72,31 @@ function newUser(req, res) { // create new user from given json config
         }
         console.log("Connection to dev@localhost successful! Connection ID: " + conn.threadId);
 
-        if (util.isNullOrUndefined(data.login) || util.isNullOrUndefined(data.email) || util.isNullOrUndefined(data.password)
-            || util.isNullOrUndefined(data.wmid)) { // check whether all data is provided
+        if (util.isNullOrUndefined(data.login) || util.isNullOrUndefined(data.email) || util.isNullOrUndefined(data.password)) { // check whether all data is provided
             res.sendStatus(400);
             conn.end();
         } else {
-            conn.query("INSERT INTO users(`user_login`,`user_email`,`user_password`,`user_wmid`,`user_last_ip`) " +
-                "VALUES('" + data.login + "','" + data.email + "','" + data.password + "','" + data.wmid + "','" + req.ip + "');", function (err) {
-                if (err) { // check for errors while executing query
-                    if (err.stack.indexOf("ER_DUP_ENTRY") > -1) { // login taken? (workaround - searches for substring in error message)
-                        res.sendStatus(409);
-                    } else { // else simply send 500 code and error stack
-                        console.error("Error creating user from ip " + req.ip + "; Desc: " + err.stack);
-                        res.statusCode = 500;
-                        res.json({"error": 500, "desc": err.stack});
-                    }
-                    conn.end();
+            conn.query("SELECT COUNT(`user_login`) AS num FROM users WHERE user_login = '" + data.login + "'", function (err, rows, fields) {
+                if (error || rows[0].num < 1) {
+                    console.error("Error connecing to database: " + error.stack);
+                    res.statusCode = 500;
+                    res.json({"error": error ? 500 : 400, "desc": error ? error.stack : "Already exist"});
                     return;
-                } else res.redirect("/users/" + data.login); //if successfully, redirect to created user page
-                conn.end();
+                }
+                console.log("Connection to dev@localhost successful! Connection ID: " + conn.threadId);
+                conn.query("INSERT INTO users(`user_login`,`user_email`,`user_password`,`user_last_ip`) " +
+                    "VALUES('" + data.login + "','" + data.email + "','" + data.password + "','" + req.ip + "');", function (err) {
+                    if (err) { // check for errors while executing query
+                        if (err) { // else simply send 500 code and error stack
+                            console.error("Error creating user from ip " + req.ip + "; Desc: " + err.stack);
+                            res.statusCode = 500;
+                            res.json({"error": 500, "desc": err.stack});
+                        }
+                        conn.end();
+                        return;
+                    } else res.redirect("/users/" + data.login); //if successfully, redirect to created user page
+                    conn.end();
+                });
             });
         }
     });

@@ -36,7 +36,7 @@ function getNewHash() //generates random 20 bytes and returns their HEX represen
 {
     return crypto.randomBytes(20).toString('hex');
 }
-function isNearValue(checked, reference, percent) {
+function isAboveValue(checked, reference, percent) {
     var floater = percent > 1 ? percent / 100 : percent;
     return checked + checked * floater >= reference;
 }
@@ -53,7 +53,7 @@ function objectValues(obj) {
 module.exports.objectValues = objectValues;
 module.exports.getConnection = getConnection;
 module.exports.getNewHash = getNewHash;
-module.exports.isNearValue = isNearValue;
+module.exports.isAboveValue = isAboveValue;
 module.exports.itemTypes = item_types;
 module.exports.LKconstants = LKconstant;
 module.exports.LKconstPlusOne = LKconstPlusOne;
