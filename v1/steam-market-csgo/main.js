@@ -77,7 +77,6 @@ function formatPriceOverviewUrl(currency, starred, stattrack, name, skin, wear) 
 
 function getPrice(currency, starred, stattrack, name, skin, wear) {
     var url = "http://" + URL_HOST + formatPriceOverviewUrl(currency, starred, stattrack, name, skin, wear);
-    console.log("URL:", url);
 
     request({method: "GET", uri: url, gzip: true}, function (error, res, body) {
         if (error || res.statusCode != 200) {
@@ -85,8 +84,12 @@ function getPrice(currency, starred, stattrack, name, skin, wear) {
             return;
         }
         if (!JSON.parse(body).success) return;
-        var Result = currency == CURRENCY.usd ? JSON.parse(body).lowest_price.substr(1) : JSON.parse(body).lowest_price.substring(0, JSON.parse(body).lowest_price.indexOf("p"));
-
+        try {
+            var Result = currency == CURRENCY.usd ? JSON.parse(body).lowest_price.substr(1) : JSON.parse(body).lowest_price.substring(0, JSON.parse(body).lowest_price.indexOf("p"));
+        } catch (errr) {
+            console.error("Error retrieving lowest price. Stack:");
+            console.error(errr.stack);
+        }
         priceProvider.emit(
             'newPrice',
             {

@@ -1,6 +1,8 @@
 var mysql = require("mysql");
 var crypto = require("crypto");
+var fs = require("fs");
 
+var CONFIG;
 var item_types = {"knife": 1, "gun": 0};
 var LKconstant = {"normal": 0.075, "weak": 0.03, "hardcore": 0.1}; //Lobanov-Koreshkov constants
 var LKconstPlusOne = {
@@ -14,13 +16,14 @@ function getConnection(callb) //returns connection to DB. callback - function to
 {
     if (typeof callb === "function") {
         var c;
+        var config = JSON.parse(fs.readFileSync("apiconfig.json"));
         try {
             c = mysql.createConnection({ // pool for mysql connections
-                host: "localhost",
-                port: "3306",
-                user: "dev",
-                password: "mlg_quickscoper",
-                database: "lincoln_project",
+                host: config.dbhost,
+                port: config.dbport,
+                user: config.dbuser,
+                password: config.dbpass,
+                database: config.dbname,
                 multipleStatements: true,
                 debug: false
             });
@@ -28,7 +31,6 @@ function getConnection(callb) //returns connection to DB. callback - function to
             callb(err);
             return;
         }
-
         callb(null, c);
     }
 }
@@ -50,11 +52,48 @@ function objectValues(obj) {
     return result;
 }
 
+function isIpBelongsToWebmoney(ip) {
+    if (typeof ip != "string") {
+        return undefined;
+    }
+    var KOTE101 = [ // WEBMONEY IPs
+        /^(212\.118\.48\.)(\d{1,3})$/g,
+        /^(212\.158\.173\.)(\d{1,3})$/g,
+        /^(91\.200\.28\.)(\d{1,3})$/g,
+        /^(91\.227\.52\.)(\d{1,3})$/g
+    ];
+
+    var boxOnTheWall = false;
+    KOTE101.forEach(function (regex) {
+        if (ip.match(regex))boxOnTheWall = true;
+    });
+    return boxOnTheWall;
+}
+
+function sha256(str) {
+    return crypto.createHash("sha256", str);
+}
+
+function setConfig(config) {
+    CONFIG = config;
+}
+
+function randomInt(low, high) {
+    console.log(typeof low, typeof high);
+    console.log(Math.floor(Math.random() * (high - low) + low));
+    return Math.floor(Math.random() * (high - low) + low);
+}
+
 module.exports.objectValues = objectValues;
 module.exports.getConnection = getConnection;
 module.exports.getNewHash = getNewHash;
 module.exports.isAboveValue = isAboveValue;
+module.exports.isIpBelongsToWebmoney = isIpBelongsToWebmoney;
+module.exports.sha256 = sha256;
+module.exports.setConfig = setConfig;
+module.exports.randomInt = randomInt;
 module.exports.itemTypes = item_types;
 module.exports.LKconstants = LKconstant;
 module.exports.LKconstPlusOne = LKconstPlusOne;
 module.exports.DetectionModes = detectionModes;
+module.exports.CONFIG = CONFIG;

@@ -91,9 +91,8 @@ function setPaid(req, res) {
             res.json({"error": 500, "desc": error.stack});
             return;
         }
-        conn.query("UPDATE `coupons` SET coupon_paid=1, coupon_date_paid=\'" +
-            new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') +
-            "\' WHERE coupon_id='" + req.params.id + "'", function (err, rows, fields) {
+        conn.query("UPDATE `coupons` SET coupon_paid=1, coupon_date_paid= NOW() " +
+            "WHERE coupon_id='" + req.params.id + "'", function (err, rows, fields) {
             conn.end();
             if (err) {
                 res.statusCode = 500;
@@ -252,18 +251,7 @@ function newCoupon(req, res) {
                     conn.end();
                     return;
                 }
-                if (data.paid == 1 || data.paid == '1' || data.paid == true || data.paid == 'true') {
-                    conn.query("UPDATE `coupons` SET coupon_paid=1 WHERE coupon_id='" + generatedId + "'", function (error) {
-                        if (error) {
-                            res.statusCode = 500;
-                            res.json({"error": 500, "desc": error.stack});
-                            conn.end();
-                            return;
-                        }
-                        res.redirect("/coupons/createChildren/" + generatedId);
-                        conn.end();
-                    });
-                } else res.redirect("/coupons/" + generatedId);
+                res.redirect("/coupons/" + generatedId);
             });
         }
         conn.end();

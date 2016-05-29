@@ -1,0 +1,19 @@
+{
+  "WMSecret": "secret",
+  "apiHost": "localhost",
+  "apiPort": 2016,
+  "adminPassword": "rosebud",
+  "frontHost": "localhost",
+  "rootEmail": "michael.root@gmail.com",
+  "adminEmail": "koreshov.m@gmail.com",
+  "steamApiKey": "key",
+  "priceUpdateInterval": 300000,
+  "botLogin": "login",
+  "botPass": "pass",
+  "dbhost": "localhost",
+  "dbname": "lincoln_project",
+  "dbpass": "mlg_quickscoper",
+  "dbuser": "dev",
+  "dbport": 3306,
+  "logPath": "logs/"
+}

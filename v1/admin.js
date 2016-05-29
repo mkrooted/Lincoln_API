@@ -12,25 +12,35 @@ function tr(content) {
 function getNewPrices() {
     lib.getConnection(function (err, conn) {
         conn.query("SELECT item_name, item_skin, item_starred, item_stattrack, item_wear FROM `items`", function (error, rows, fields) {
-            if (error || typeof rows[0] == "undefined")return;
+            if (error || typeof rows[0] == "undefined") {
+                conn.end();
+                return;
+            }
             rows.forEach(function (item) {
                 market.getPrice(market.currency.usd, item.item_starred, item.item_stattrack, item.item_name,
                     item.item_skin, item.item_wear);
             });
         });
+        conn.end();
     });
 }
 market.priceProvider.on('newPrice', function (args) {
     lib.getConnection(function (err, conn) {
-        if (err)return;
+        if (err) {
+            conn.end();
+            return;
+        }
         conn.query("SELECT item_id, item_price FROM `items` WHERE item_name='" + args.name + "' && item_skin='" + args.skin +
             "' && item_wear='" + args.wear + "'", function (error, rows, fields) {
-            if (error || typeof rows[0] == "undefined")return;
+            if (error || typeof rows[0] == "undefined") {
+                conn.end();
+                return;
+            }
             conn.query("UPDATE `items` SET item_market_price = " + args.price + " WHERE item_id = " + rows[0].item_id + ";\n" +
                 "INSERT INTO `price_records` (price_record_item, price_record_price) VALUES " +
-                "(" + rows[0].item_id + ", " + args.price + ");\n" +
-                "DELETE FROM `price_records` WHERE price_record_datetime < ADDTIME(now(), '-24:00:00'); ", function (err, rows, fields) {
-                if (err)return;
+                "(" + rows[0].item_id + ", " + args.price + ");", function (err, rows, fields) {
+                //if (err)return;
+                conn.end();
             });
         });
     });
@@ -84,9 +94,70 @@ function getPriceTable(req, res) {
     });
 }
 function getPriceTrends(req, res) {
+    lib.getConnection(function (error, conn) {
+        if (error) {
+            res.statusCode = 500;
+            res.json({"error": 500, "desc": error.stack});
+            conn.end();
+            return;
+        }
+        conn.query("SELECT * FROM price_records WHERE price_record_item = " + req.params.id, function (err, rows, fields) {
+            if (err) {
+                res.statusCode = 500;
+                res.json({"error": 500, "desc": err.stack});
+                conn.end();
+                return;
+            }
+            if (typeof rows == "undefined" || typeof rows[0] == "undefined") {
+                res.sendStatus(404);
+                conn.end();
+                return;
+            }
 
+            var r = [['Datetime', 'market price', 'coupon price']];
+            rows.forEach(function (row) {
+                r.push([
+                    row.price_record_datetime.toString().substring(4, 24),
+                    row.price_record_price
+                ]);
+            });
+
+            res.json(r);
+            conn.end();
+        });
+    });
+}
+
+function newNotification(req, res) {
+    var data = req.body;
+    if (typeof data.type != "number" || typeof data.details != "string") {
+        res.statusCode = 400;
+        res.json({error: 400, desc: "Invalid input"});
+        return;
+    }
+    lib.getConnection(function (error, conn) {
+        if (error) {
+            res.statusCode = 500;
+            res.json({"error": 500, "desc": error.stack()});
+            conn.end();
+            return;
+        }
+        var sql = "INSERT INTO notifications (notification_type, notification_details" + typeof data.title == "string" ? ", notification_title) " : ") " +
+        "VALUES (" + data.type + ", '" + data.details + "'" + typeof data.title == "string" ? ", " + data.title + "')" : ")";
+        conn.query(sql, function (err, rows, fields) {
+            if (err) {
+                if (error) {
+                    res.statusCode = 500;
+                    res.json({"error": 500, "desc": error.stack()});
+                    conn.end();
+                    return;
+                }
+            }
+        });
+    });
 }
 
 module.exports.tableGenerator = table;
 module.exports.getPriceTable = getPriceTable;
 module.exports.getNewPrices = getNewPrices;
+module.exports.getPriceTrends = getPriceTrends;

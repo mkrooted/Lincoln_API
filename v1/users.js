@@ -76,27 +76,18 @@ function newUser(req, res) { // create new user from given json config
             res.sendStatus(400);
             conn.end();
         } else {
-            conn.query("SELECT COUNT(`user_login`) AS num FROM users WHERE user_login = '" + data.login + "'", function (err, rows, fields) {
-                if (error || rows[0].num < 1) {
-                    console.error("Error connecing to database: " + error.stack);
+            conn.query("INSERT INTO users(`user_login`,`user_email`,`user_password`,`user_last_ip`) " +
+                "VALUES('" + data.login + "','" + data.email + "','" + data.password + "','" + req.ip + "') " +
+                "ON DUPLICATE KEY UPDATE user_last_ip='" + req.ip + "', user_date_last_login=NOW();", function (err) {
+                if (err) { // check for errors while executing query
+                    console.error("Error creating user from ip " + req.ip + "; Desc: " + err.stack);
                     res.statusCode = 500;
-                    res.json({"error": error ? 500 : 400, "desc": error ? error.stack : "Already exist"});
+                    res.json({"error": 500, "desc": err.stack});
+                    conn.end();
                     return;
                 }
-                console.log("Connection to dev@localhost successful! Connection ID: " + conn.threadId);
-                conn.query("INSERT INTO users(`user_login`,`user_email`,`user_password`,`user_last_ip`) " +
-                    "VALUES('" + data.login + "','" + data.email + "','" + data.password + "','" + req.ip + "');", function (err) {
-                    if (err) { // check for errors while executing query
-                        if (err) { // else simply send 500 code and error stack
-                            console.error("Error creating user from ip " + req.ip + "; Desc: " + err.stack);
-                            res.statusCode = 500;
-                            res.json({"error": 500, "desc": err.stack});
-                        }
-                        conn.end();
-                        return;
-                    } else res.redirect("/users/" + data.login); //if successfully, redirect to created user page
-                    conn.end();
-                });
+                res.redirect("/users/" + data.login); //if successfully, redirect to created user page
+                conn.end();
             });
         }
     });
